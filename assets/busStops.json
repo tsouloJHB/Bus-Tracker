@@ -1,0 +1,31 @@
+{
+  "bus_stops": [
+    {
+      "coordinates": {
+        "latitude":  -26.1742,
+        "longitude":  27.95722
+      },
+      "street_direction": "North",
+      "address": "Main road and 17 street",
+      "bus_numbers": ["C5"]
+    },
+    {
+      "coordinates": {
+        "latitude": -26.173972,   
+        "longitude":27.957237
+      },
+      "street_direction": "South",
+      "address": "Main road and 17 street",
+      "bus_numbers": ["C5"]
+    },
+    {
+      "coordinates": {
+        "latitude": -26.17389, 
+        "longitude": 27.95929
+      },
+      "street_direction": "East",
+      "address": "Main",
+      "bus_numbers": ["C5"]
+    }
+  ]
+}
