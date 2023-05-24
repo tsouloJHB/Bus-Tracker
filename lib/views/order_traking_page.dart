@@ -40,6 +40,9 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
   List<Marker> _busMarkers = [];
   List<dynamic> _busStopsCoordinates = [];
 
+  late LatLng? _cameraPosition;
+  late LatLng? _previousCameraPosition;
+
   final List<LatLng> _busRoute = [
     LatLng(-26.173839015619123, 27.957135056912423),
     LatLng(-26.173725338555313, 27.956976434785023),
@@ -109,18 +112,19 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
 
 //get current location and bus stops
 
-  void getCurrentLocation() async {
+  Future<Location> getCurrentLocation() async {
     Location location = Location();
 
     location.getLocation().then((location) {
       currentLocation = location;
+      _previousCameraPosition = LatLng(location.latitude!, location.longitude!);
       getBusStop();
     });
 
     location.onLocationChanged.listen((newLoc) {
       currentLocation = newLoc;
-
-      // googleMapController.animateCamera(CameraUpdate.newCameraPosition(
+      // mapController.animateCamera()
+      // mapController!.animateCamera(CameraUpdate.newCameraPosition(
       //   CameraPosition(
       //       zoom: 15.5,
       //       target: LatLng(
@@ -133,6 +137,7 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
       // print("The current location");
       // print(currentLocation);
     });
+    return location;
   }
 
   void getPolyPoints() async {
@@ -206,6 +211,7 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
             Math.sin(dLon / 2);
     double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     double distance = earthRadius * c;
+    print(distance);
     return distance;
   }
 
@@ -245,7 +251,11 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
     _createBusMarkers();
     // busTrackingService.getEstimatedArrivalTime(
     //     const LatLng(-26.1742, 27.95722), const LatLng(-26.183186, 28.004540));
-    busTracker.busPositionTimer();
+
+    //run timers
+    //busTracker.busPositionTimer();
+    //busTracker.getBusPositions(context);
+    //busTracker.callGetBusPositions();
 
     // dataAccess
     //     .filterByCoordinates(-26.174159869717354, 27.957245724156362)
@@ -260,6 +270,7 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
     // print(foundMark);
   }
 
+  //get all bus stop on the map with in a radius of 1000 and filter out none reya vaya bus stops
   void getBusStop() async {
     print("getBusInside");
 
@@ -377,12 +388,16 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
 
 //markers call back function
 
-  void onMarkerTapped(MarkerId markerId) {
+  Future<void> onMarkerTapped(MarkerId markerId) async {
     // Find the corresponding bus stop based on the markerId
     print(markerId.value);
+
     // LatLng busStopCoordinates =  busTracker.castStringToLatLng(markerId.value);
     print(LatLng(_busStopsCoordinates.first["coordinates"]['latitude'],
         _busStopsCoordinates.first["coordinates"]['longitude']));
+    LatLng destination = LatLng(
+        _busStopsCoordinates.first["coordinates"]['latitude'],
+        _busStopsCoordinates.first["coordinates"]['longitude']);
 
     dynamic busStop = _busStopsCoordinates.firstWhere(
       (busStop) =>
@@ -395,12 +410,14 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
 
     if (busStop != null) {
       // Bus stop found, extract the bus numbers
-      List busNumbers = busStop["bus_numbers"]; 
-
+      List busNumbers = busStop["bus_numbers"];
+      print(busNumbers);
       //get bus positions of provided bus numbers
 
       //get bus info
-      busTracker.getBusPositions(context);
+      //busTracker.getBusPositions(context);
+      await busTracker.getEstimatedArrivalTimes(busNumbers, destination);
+      busTracker.callEstimatedBusArrival(busNumbers, destination);
       // showModalBottomSheet(
       //   context: context,
       //   builder: (BuildContext context) {
@@ -444,12 +461,29 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
                       const Text(
                         'Bus Stop',
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 18.0),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18.0,
+                        ),
                       ),
-                      SizedBox(height: 16.0),
-                      Text('Bus\'s: ${busNumbers.join(", ")}'),
-                      Text('Bus Arrivals'),
+                      const SizedBox(height: 16.0),
+                      Text('Bus\'s:'),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: busNumbers.map((busNumber) {
+                          return Text(busNumber.toString());
+                        }).toList(),
+                      ),
+                      const Text('Bus Arrivals'),
                       Text(busTrackingState.busArrivalText),
+                      const SizedBox(height: 16.0),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children:
+                            busTrackingState.getBusArrivals.map((arrivals) {
+                          return Text(
+                              "${arrivals.busNumber} arriving in : ${arrivals.time}");
+                        }).toList(),
+                      ),
                     ],
                   ),
                 ),
@@ -457,7 +491,55 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
             },
           );
         },
-      );
+      ).whenComplete(() {
+        // Handle the tap outside the bottom sheet
+        print('User tapped outside the bottom sheet');
+        busTracker.resetIsEstimatedBusArrival();
+
+        /// busTracker.resetGetBusPostions();
+        // Add your custom logic here
+      });
+    }
+  }
+
+  double calculateDistanceHaversine(LatLng position1, LatLng position2) {
+    const double earthRadius = 6371000; // in meters
+    double lat1 =
+        position1.latitude * (3.141592653589793 / 180); // convert to radians
+    double lat2 =
+        position2.latitude * (3.141592653589793 / 180); // convert to radians
+    double lon1 =
+        position1.longitude * (3.141592653589793 / 180); // convert to radians
+    double lon2 =
+        position2.longitude * (3.141592653589793 / 180); // convert to radians
+
+    double dLat = lat2 - lat1;
+    double dLon = lon2 - lon1;
+
+    double a = Math.pow(Math.sin(dLat / 2), 2) +
+        Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(dLon / 2), 2);
+    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    double distance = earthRadius * c;
+    print(distance);
+    return distance;
+  }
+
+  void fetchMarkersInRadius(LatLng newCameraPosition, double radius) {
+    print("CAMERA moved");
+    print(_previousCameraPosition);
+    print("new camera position");
+    print(newCameraPosition);
+    print(radius);
+    print("--------");
+    if (_previousCameraPosition == null ||
+        calculateDistanceHaversine(
+                _previousCameraPosition!, newCameraPosition) >
+            400) {
+      print("fetch markers");
+      // Camera position changed outside the previous radius
+      //getMarkers(newCameraPosition);
+      _previousCameraPosition = newCameraPosition;
     }
   }
 
@@ -517,6 +599,12 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
                       title: 'Bus Location',
                     ),
                   ),
+                },
+                onCameraMove: (CameraPosition position) {
+                  // Handle camera movement here
+                  // Call the fetchMarkersInRadius method or perform any other desired actions
+                  fetchMarkersInRadius(
+                      position.target, 1000); // Adjust the radius as needed
                 },
                 // onMapCreated: (mapController) {
                 //   _controller.complete(mapController);

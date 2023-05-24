@@ -7,16 +7,16 @@
       },
       "street_direction": "North",
       "address": "Main road and 17 street",
-      "bus_numbers": ["C5"]
+      "bus_numbers": ["C5","T1"]
     },
     {
       "coordinates": {
-        "latitude": -26.173972,   
-        "longitude":27.957237
+        "latitude": -26.173968,  
+        "longitude": 27.957238
       },
       "street_direction": "South",
       "address": "Main road and 17 street",
-      "bus_numbers": ["C5"]
+      "bus_numbers": ["C5","C4"]
     },
     {
       "coordinates": {

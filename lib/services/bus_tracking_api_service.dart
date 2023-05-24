@@ -1,3 +1,7 @@
+import 'dart:math';
+
+import 'package:google_mao/models/bus_model.dart';
+import 'package:google_mao/models/coordinates_model.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -64,6 +68,22 @@ class BusTrackingService {
     ];
 
     return predefinedList;
+  }
+
+  //get the bus information  by the bus numbers
+  List<Bus> fetchBusCoordinatesByBusNumberMock(List<String> buses) {
+    Random random = Random();
+    final fetchedBuses = buses.map((bus) {
+      int randomIndex = random.nextInt(_busRoute.length);
+      final busObj = Bus(
+          busNumber: bus,
+          coordinates: Coordinates(
+              latitude: _busRoute[randomIndex].latitude,
+              longitude: _busRoute[randomIndex].longitude),
+          busId: "45hkty6");
+      return busObj;
+    }).toList();
+    return fetchedBuses;
   }
 
   List<dynamic> fetchBusCoordinatesByBusStop(LatLng coordinates, int position) {
