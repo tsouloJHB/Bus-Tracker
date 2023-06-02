@@ -19,22 +19,22 @@ class BusTrackingService {
 
   List<LatLng> _busRoute = [
     LatLng(-26.183186, 28.004540),
-    LatLng(-26.183105, 28.004168),
-    LatLng(-26.182949, 28.003584),
-    LatLng(-26.182669, 28.002393),
-    LatLng(-26.182082, 27.999389),
-    LatLng(-26.181745, 27.997940),
-    LatLng(-26.181524, 27.996942),
-    LatLng(-26.181283, 27.994839),
-    LatLng(-26.182255, 27.992812),
-    LatLng(-26.183247, 27.990473),
-    LatLng(-26.184345, 27.987962),
-    LatLng(-26.186164, 27.983596),
-    LatLng(-26.183690, 27.981310),
-    LatLng(-26.181119, 27.978596),
-    LatLng(-26.178452, 27.974240),
-    LatLng(-26.176295, 27.969831),
-    LatLng(-26.174745, 27.964541),
+    LatLng(-26.183113, 28.004327),
+    LatLng(-26.183043, 28.004027),
+    LatLng(-26.182973, 28.003748),
+    LatLng(-26.182882, 28.003372),
+    LatLng(-26.182817, 28.003026),
+    LatLng(-26.182723, 28.002554),
+    LatLng(-26.182586, 28.001958),
+    LatLng(-26.182475, 28.001288),
+    LatLng(-26.182357, 28.000564),
+    LatLng(-26.182160, 27.999681),
+    LatLng(-26.181926, 27.998984),
+    LatLng(-26.181782, 27.998295),
+    LatLng(-26.181652, 27.997603),
+    LatLng(-26.181450, 27.996688),
+    LatLng(-26.181240, 27.995671),
+    LatLng(-26.181257, 27.995100),
     LatLng(-26.17144626501108, 27.953277271992954),
     LatLng(-26.171333585829856, 27.953086281289328),
     LatLng(-26.171179832969014, 27.952872289380265),
@@ -53,6 +53,9 @@ class BusTrackingService {
   }
 
   List<dynamic> fetchBusCoordinatesMock(int position) {
+    print("print mock");
+    print(position);
+    print(_busRoute.length);
     if (position > _busRoute.length) {
       position = _busRoute.length;
     }
@@ -70,6 +73,8 @@ class BusTrackingService {
     return predefinedList;
   }
 
+   
+   
   //get the bus information  by the bus numbers
   List<Bus> fetchBusCoordinatesByBusNumberMock(List<String> buses) {
     Random random = Random();

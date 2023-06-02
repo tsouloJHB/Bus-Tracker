@@ -26,6 +26,43 @@
       "street_direction": "East",
       "address": "Main",
       "bus_numbers": ["C5"]
+    },
+    {
+      "coordinates": {
+        "latitude": -26.174224, 
+        "longitude": 27.962762
+      },
+      "street_direction": "East",
+      "address": "105 Main Rd, Newlands, Randburg, 2092",
+      "bus_numbers": ["C5"]
+    },
+    {
+      "coordinates": {
+        "latitude": -26.174552346900654, 
+        "longitude": 27.963046699748087
+      },
+      "street_direction": "East",
+      "address": "Main Rd & Ackerman Rd",
+      "bus_numbers": ["C5"]
+    },
+    {
+      "coordinates": {
+        "latitude": -26.175765, 
+        "longitude":  27.967466
+      },
+      "street_direction": "East",
+      "address": "Main Rd & Ackerman Rd",
+      "bus_numbers": ["C5"]
+    },
+    {
+      "coordinates": {
+        "latitude": -26.175628540597433, 
+        "longitude": 27.967844191223826
+      },
+      "street_direction": "East",
+      "address": "149 Main Rd, Newlands, Randburg, 2092",
+      "bus_numbers": ["C5"]
     }
+
   ]
 }

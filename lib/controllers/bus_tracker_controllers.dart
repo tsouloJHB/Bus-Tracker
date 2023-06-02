@@ -118,10 +118,14 @@ class BusTracker {
   void busPositionTimer() {
     // Start calling the function every 10 seconds
 
-    _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 20), (timer) {
       List<Bus> busList = getBusPositions(_context!);
 
+      final busTrackingState =
+          Provider.of<BusTrackingState>(_context!, listen: false);
+      busTrackingState.setBusList(busList);
       print(busList);
+      //update state busList
     });
   }
 

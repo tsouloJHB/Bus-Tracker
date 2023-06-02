@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ffi';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_mao/constants.dart';
@@ -29,7 +30,13 @@ class OrderTrackingPage extends StatefulWidget {
 class OrderTrackingPageState extends State<OrderTrackingPage> {
   final Completer<GoogleMapController> _controller = Completer();
   GoogleMapController? mapController;
-
+  final docUser = FirebaseFirestore.instance.collection('BusLocation');
+  final jsonData = {
+    'BusNumber': 'c5',
+    'BusID': '445453',
+    'latitude': '435435',
+    'longitude': '7634345'
+  };
   BusServices busServices = BusServices(apiKey: google_api_key);
   DataAccess dataAccess = DataAccess();
 
@@ -118,7 +125,8 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
     location.getLocation().then((location) {
       currentLocation = location;
       _previousCameraPosition = LatLng(location.latitude!, location.longitude!);
-      getBusStop();
+      _cameraPosition = LatLng(location.latitude!, location.longitude!);
+      getBusStop("user");
     });
 
     location.onLocationChanged.listen((newLoc) {
@@ -137,6 +145,7 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
       // print("The current location");
       // print(currentLocation);
     });
+    await docUser.add(jsonData);
     return location;
   }
 
@@ -230,6 +239,14 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _createBusMarkers();
+    //run timer
+    busTracker.busPositionTimer();
+  }
+
+  @override
   void initState() {
     super.initState();
     final busTrackingState =
@@ -241,6 +258,7 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
     getPolyPoints();
 
     _startBusSimulation();
+
     // Marker foundMark = _findNearestMarker(
     //   LatLng(
     //     currentLocation?.latitude ?? 0.0,
@@ -248,7 +266,7 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
     //   ),
     // );
     print("Found");
-    _createBusMarkers();
+    // _createBusMarkers();
     // busTrackingService.getEstimatedArrivalTime(
     //     const LatLng(-26.1742, 27.95722), const LatLng(-26.183186, 28.004540));
 
@@ -271,14 +289,23 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
   }
 
   //get all bus stop on the map with in a radius of 1000 and filter out none reya vaya bus stops
-  void getBusStop() async {
+  Future<void> getBusStop(String requestType) async {
     print("getBusInside");
 
+    final latitude = (requestType == "camera")
+        ? _cameraPosition?.latitude ?? 0.0
+        : currentLocation?.latitude ?? 0.0;
+
+    final longitude = (requestType == "camera")
+        ? _cameraPosition?.longitude ?? 0.0
+        : currentLocation?.longitude ?? 0.0;
+
     final busStops = await busServices.getBusStops(
-      latitude: currentLocation?.latitude ?? 0.0,
-      longitude: currentLocation?.longitude ?? 0.0,
+      latitude: latitude,
+      longitude: longitude,
       radius: 1000,
     );
+
     print(busStops);
     // await busServices.getTransitDirections(-26.1740319390168,
     //     27.956400781280113, -26.183177132555347, 27.99042141048071);
@@ -291,11 +318,11 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
         busStop.latitude,
         busStop.longitude,
       );
-      print("Inside ");
-      print(busStop.latitude);
+      // print("Inside ");
+      //print(busStop.latitude);
       if (filteredStops.isNotEmpty) {
-        print("The data");
-        print(filteredStops);
+        //print("The data");
+        //print(filteredStops);
         dynamic busStop = busStops.first;
         // dynamic coordinates = busStop["coordinates"];
         print(busStop);
@@ -336,23 +363,24 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
     // final busList = busTracker.getBusPositions();
     // print(busList.toString());
     //BuildContext context
+
+    //update bus tracking state when the program start
+    //should be awaited
+    List<Bus> busList = busTracker.getBusPositions(context);
+    final busTrackingState =
+        Provider.of<BusTrackingState>(context, listen: false);
+    busTrackingState.setBusList(busList);
+    // List<Bus> busList = busTracker.getBusPositions(context);
     setState(() {
-      List<Bus> busList = busTracker.getBusPositions(context);
-      _busMarkers = busList.map((Bus bus) {
-        // Coordinates coordinates = bus.coordinates;
-        print("cooordinates");
-        // print(busTracker
-        //     .coordinatesToLatlng(busList.first.coordinates)
-        //     .toString());
+      _busMarkers = context.watch<BusTrackingState>().busList.map((Bus bus) {
         return Marker(
           markerId: MarkerId(
               busTracker.coordinatesToLatlng(bus.coordinates).toString()),
           position: busTracker.coordinatesToLatlng(bus.coordinates),
           infoWindow: InfoWindow(
-              title: 'Reya vaya',
-              snippet:
-                  busTracker.coordinatesToLatlng(bus.coordinates).toString()),
-          // (${context.watch<BusTrackingState>().busArrivalState}),
+            title: 'Reya vaya',
+            snippet: busTracker.coordinatesToLatlng(bus.coordinates).toString(),
+          ),
           onTap: () {
             onMarkerTapped(MarkerId(
                 busTracker.coordinatesToLatlng(bus.coordinates).toString()));
@@ -360,6 +388,29 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
         );
       }).toList();
     });
+    // setState(() {
+    //   _busMarkers = _busList.map((Bus bus) {
+    //     // Coordinates coordinates = bus.coordinates;
+    //     print("cooordinates");
+    //     // print(busTracker
+    //     //     .coordinatesToLatlng(busList.first.coordinates)
+    //     //     .toString());
+    //     return Marker(
+    //       markerId: MarkerId(
+    //           busTracker.coordinatesToLatlng(bus.coordinates).toString()),
+    //       position: busTracker.coordinatesToLatlng(bus.coordinates),
+    //       infoWindow: InfoWindow(
+    //           title: 'Reya vaya',
+    //           snippet:
+    //               busTracker.coordinatesToLatlng(bus.coordinates).toString()),
+    //       // (${context.watch<BusTrackingState>().busArrivalState}),
+    //       onTap: () {
+    //         onMarkerTapped(MarkerId(
+    //             busTracker.coordinatesToLatlng(bus.coordinates).toString()));
+    //       },
+    //     );
+    //   }).toList();
+    // });
   }
 
   void _createMarkers() {
@@ -525,21 +576,38 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
     return distance;
   }
 
-  void fetchMarkersInRadius(LatLng newCameraPosition, double radius) {
-    print("CAMERA moved");
-    print(_previousCameraPosition);
-    print("new camera position");
-    print(newCameraPosition);
-    print(radius);
-    print("--------");
+  void fetchMarkersInRadius(LatLng newCameraPosition, double radius) async {
+    // print("CAMERA moved");
+    // print(_previousCameraPosition);
+    // print("new camera position");
+    // print(newCameraPosition);
+    // print(radius);
+    // print("--------");
+    _cameraPosition = newCameraPosition;
+    // if (_previousCameraPosition == null ||
+    //     calculateDistanceHaversine(
+    //             _previousCameraPosition!, newCameraPosition) >
+    //         400) {
+    //   print("fetch markers");
+    //await getBusStop("camera");
+    // Camera position changed outside the previous radius
+    //getMarkers(newCameraPosition);
+    //_previousCameraPosition = newCameraPosition;
+    // }
+  }
+
+  void _onCameraIdle() async {
+    // Use the _cameraPosition variable here or perform any other actions
+
+    print(_cameraPosition);
     if (_previousCameraPosition == null ||
-        calculateDistanceHaversine(
-                _previousCameraPosition!, newCameraPosition) >
+        calculateDistanceHaversine(_previousCameraPosition!, _cameraPosition!) >
             400) {
-      print("fetch markers");
+      print("onCameraIdl");
+      //  await getBusStop("camera");
       // Camera position changed outside the previous radius
       //getMarkers(newCameraPosition);
-      _previousCameraPosition = newCameraPosition;
+      _previousCameraPosition = _cameraPosition;
     }
   }
 
@@ -600,6 +668,7 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
                     ),
                   ),
                 },
+                onCameraIdle: _onCameraIdle,
                 onCameraMove: (CameraPosition position) {
                   // Handle camera movement here
                   // Call the fetchMarkersInRadius method or perform any other desired actions

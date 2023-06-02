@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "542967426668",
+    "project_id": "bus-project-4347d",
+    "storage_bucket": "bus-project-4347d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:542967426668:android:86a8cc526d2a7868c27249",
+        "android_client_info": {
+          "package_name": "com.example.google_mao"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "542967426668-0hkbgbt8nv72h682gar7md0cu7ek794i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCkYq6GiKQ21P2jYpD0OLR2Spy5VGi1uQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "542967426668-0hkbgbt8nv72h682gar7md0cu7ek794i.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "542967426668-9vt07bsvn6kjt2q4ff4rdu0p62v9k828.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.googleMao"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
