@@ -32,8 +32,8 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
   GoogleMapController? mapController;
   final docUser = FirebaseFirestore.instance.collection('BusLocation');
   final jsonData = {
-    'BusNumber': 'c5',
-    'BusID': '445453',
+    'busNumber': 'c5',
+    'busId': '445453',
     'latitude': '435435',
     'longitude': '7634345'
   };
@@ -252,11 +252,14 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
     final busTrackingState =
         Provider.of<BusTrackingState>(context, listen: false);
     print("ran1");
+
+    //set build context for the busTracker controller to shared by the methods
     busTracker.setBuildContext(context);
     getCurrentLocation();
     setCustomMarkerIcon();
     getPolyPoints();
 
+    //just testing
     _startBusSimulation();
 
     // Marker foundMark = _findNearestMarker(
@@ -300,45 +303,42 @@ class OrderTrackingPageState extends State<OrderTrackingPage> {
         ? _cameraPosition?.longitude ?? 0.0
         : currentLocation?.longitude ?? 0.0;
 
-    final busStops = await busServices.getBusStops(
-      latitude: latitude,
-      longitude: longitude,
-      radius: 1000,
-    );
+    // final busStops = await busServices.getBusStops(
+    //   latitude: latitude,
+    //   longitude: longitude,
+    //   radius: 1000,
+    // );
+    final busStops = await busServices.getBusStopsFromJson();
 
     print(busStops);
     // await busServices.getTransitDirections(-26.1740319390168,
     //     27.956400781280113, -26.183177132555347, 27.99042141048071);
 
     //check if the current bus stops are reya vays bus stops and filter out the none
-    List<dynamic> filteredBusStops = [];
-    List<LatLng> coordinatesBusStops = []; // Declare the list outside the loop
-    await Future.wait(busStops.map((LatLng busStop) async {
-      List<dynamic> filteredStops = await dataAccess.filterByCoordinates(
-        busStop.latitude,
-        busStop.longitude,
-      );
-      // print("Inside ");
-      //print(busStop.latitude);
-      if (filteredStops.isNotEmpty) {
-        //print("The data");
-        //print(filteredStops);
-        dynamic busStop = busStops.first;
-        // dynamic coordinates = busStop["coordinates"];
-        print(busStop);
-        // double latitude = coordinates["latitude"];
-        // double longitude = coordinates["longitude"];
-        // LatLng coor = LatLng(latitude, longitude);
-        coordinatesBusStops.add(busStop);
-        filteredBusStops
-            .addAll(filteredStops); // Update the list with the filtered stops
-      }
-    }));
+    // List<dynamic> filteredBusStops = [];
+    // List<LatLng> coordinatesBusStops = []; // Declare the list outside the loop
+    // await Future.wait(busStops.map((LatLng busStop) async {
+    //   List<dynamic> filteredStops = await dataAccess.filterByCoordinates(
+    //     busStop.latitude,
+    //     busStop.longitude,
+    //   );
+
+    //   if (filteredStops.isNotEmpty) {
+
+    //     dynamic busStop = busStops.first;
+
+    //     print(busStop);
+
+    //     coordinatesBusStops.add(busStop);
+    //     filteredBusStops
+    //         .addAll(filteredStops); // Update the list with the filtered stops
+    //   }
+    // }));
 
     // print(filteredBusStops);
     // print(coordinatesBusStops);
     // _busStopsCoordinates = coordinatesBusStops;
-    _busStopsCoordinates = filteredBusStops;
+    _busStopsCoordinates = busStops;
     _createMarkers();
 
     print("busStops ");

@@ -39,6 +39,7 @@ dependencies:
   flutter_svg: ^1.1.0
   vector_math: any
   google_maps_webservice: ^0.0.19
+  
  
   flutter_google_places: ^0.3.0
   http: ^0.13.5

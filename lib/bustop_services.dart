@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_mao/data_access.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
@@ -7,6 +8,11 @@ class BusServices {
   final String apiKey;
 
   BusServices({required this.apiKey});
+  DataAccess dataAccess = DataAccess();
+
+  Future<List<dynamic>> getBusStopsFromJson() async {
+    return await dataAccess.loadJsonData();
+  }
 
   Future<List<LatLng>> getBusStops(
       {required double latitude,
